@@ -1,0 +1,35 @@
+{
+  "name": "typescript-tools-mcp",
+  "version": "1.0.0",
+  "description": "MCP server providing TypeScript development tools",
+  "main": "dist/index.js",
+  "type": "module",
+  "bin": {
+    "typescript-tools-mcp": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "bun build --target node --outdir dist index.ts && chmod +x dist/index.js",
+    "dev": "bun run index.ts",
+    "test": "bun test",
+    "config:generate": "bun run src/utils/generate-config.ts",
+    "config:install": "bun run src/utils/generate-config.ts install"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/node": "^20.0.0"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.15.1",
+    "glob": "^11.0.3",
+    "ts-morph": "^26.0.0"
+  },
+  "keywords": [
+    "mcp",
+    "typescript",
+    "refactoring",
+    "tools"
+  ]
+}
