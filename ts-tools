@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+# Get the directory where this script is located
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+# Check if dist/index.js exists
+if [ ! -f "$SCRIPT_DIR/dist/index.js" ]; then
+  echo "Error: dist/index.js not found. Please run 'bun run build' first." >&2
+  exit 1
+fi
+
+# Run the built JavaScript file with Node.js
+exec node "$SCRIPT_DIR/dist/index.js" "$@"
