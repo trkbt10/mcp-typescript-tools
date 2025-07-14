@@ -113,6 +113,23 @@ Generate dependency graph visualization with circular dependency detection and m
 - **Module Boundary Analysis**: Analyzes import/export relationships and module structure
 - **Statistics**: Provides metrics on file count, import count, dependency depth, and circular dependencies
 
+### 9. Deletion Safety Check (`check_deletable`)
+Analyze if a TypeScript file can be safely deleted by detecting all references to it throughout the codebase, including complex patterns like wildcard imports and re-exports.
+
+**Parameters:**
+- `filePath`: Path to the TypeScript file to check for deletion safety
+- `includeTypes`: Whether to include type-only imports in analysis (default: true)
+- `generateTests`: Whether to generate a `[name].spec.ts` test file in the same folder (default: false)
+- `createMocks`: Whether to create `__mocks__` folder structure with mock files (default: false)
+
+**Features include:**
+- **Comprehensive Reference Detection**: Finds all imports, exports, and dynamic imports that reference the target file
+- **Wildcard Import/Export Support**: Detects `export * from './file'` and namespace imports like `import * as Module from './file'`
+- **Type-Only Import Handling**: Can optionally exclude or include type-only imports in the analysis
+- **Test File Generation**: Generates deletion safety test files with detailed analysis and usage simulation
+- **Mock Structure Creation**: Creates `__mocks__` folder with mock implementations for testing deletion scenarios
+- **Two-Phase Analysis**: Separates analysis phase from execution phase for better control and testing
+
 ## Installation
 
 ```bash

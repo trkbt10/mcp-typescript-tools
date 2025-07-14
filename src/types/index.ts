@@ -196,3 +196,38 @@ export type DependencyVisualizationResult = {
   };
   error?: string;
 };
+
+export type CheckDeletableOptions = {
+  filePath: string;
+  includeTypes?: boolean;
+  generateTests?: boolean;
+  createMocks?: boolean;
+};
+
+export type DeletableAnalysisResult = {
+  filePath: string;
+  isDeletable: boolean;
+  references: Array<{
+    file: string;
+    line: number;
+    column: number;
+    type: 'import' | 'export' | 'dynamic_import';
+    text: string;
+    importedNames: string[];
+    isTypeOnly: boolean;
+  }>;
+  exports: Array<{
+    name: string;
+    type: 'function' | 'class' | 'variable' | 'type' | 'interface' | 'default';
+    isTypeOnly: boolean;
+  }>;
+  summary?: string;
+  error?: string;
+};
+
+export type CheckDeletableResult = {
+  analysis: DeletableAnalysisResult;
+  testFileGenerated?: string;
+  mockFilesGenerated?: string[];
+  error?: string;
+};

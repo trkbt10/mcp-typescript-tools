@@ -17,6 +17,7 @@ import { validatePackage } from './src/services/package-validation/index';
 import { optimizeImports } from './src/services/import-optimization/index';
 import { optimizeConditionals } from './src/services/conditional-optimization/index';
 import { visualizeDependencies } from './src/services/dependency-visualization/index';
+import { checkDeletable } from './src/services/check-deletable/index';
 import { generateMcpConfigSnippet, generateMcpServerConfig } from './src/utils/generate-config';
 
 const server = new Server(
@@ -258,6 +259,35 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           required: ['sourcePath', 'destinationPath'],
         },
       },
+      {
+        name: 'check_deletable',
+        description: 'Check if a TypeScript file can be safely deleted by analyzing all references to it including wildcard imports. Optionally generates test files and mock structures.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            filePath: {
+              type: 'string',
+              description: 'Path to the TypeScript file to check for deletion safety',
+            },
+            includeTypes: {
+              type: 'boolean',
+              description: 'Whether to include type-only imports in reference analysis (default: true)',
+              default: true,
+            },
+            generateTests: {
+              type: 'boolean',
+              description: 'Whether to generate a [name].spec.ts test file in the same folder (default: false)',
+              default: false,
+            },
+            createMocks: {
+              type: 'boolean',
+              description: 'Whether to create __mocks__ folder structure with mock files (default: false)',
+              default: false,
+            },
+          },
+          required: ['filePath'],
+        },
+      },
     ],
   };
 });
@@ -353,6 +383,18 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
       case 'rename_file_or_folder': {
         const result = await renameFileOrFolder(args as any);
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify(result, null, 2),
+            },
+          ],
+        };
+      }
+
+      case 'check_deletable': {
+        const result = await checkDeletable(args as any);
         return {
           content: [
             {
