@@ -2,9 +2,11 @@ import { Project, SourceFile } from 'ts-morph';
 import * as path from 'path';
 import * as fs from 'fs/promises';
 import type { FileMoveOptions, FileMoveResult } from '../../types';
+import { cleanupProject } from '../../utils/project-cleanup';
 
 export const moveTypeScriptFile = async (options: FileMoveOptions): Promise<FileMoveResult> => {
   const { source, destination, updateImports = true } = options;
+  let project: Project | undefined;
 
   try {
     const absoluteSource = path.resolve(source);
@@ -14,8 +16,9 @@ export const moveTypeScriptFile = async (options: FileMoveOptions): Promise<File
     const sourceDir = path.dirname(absoluteSource);
     const tsConfigPath = await findTsConfig(sourceDir);
 
-    const project = new Project({
+    project = new Project({
       tsConfigFilePath: tsConfigPath,
+      useInMemoryFileSystem: false,
     });
 
     // Add source file if not already in project
@@ -56,6 +59,11 @@ export const moveTypeScriptFile = async (options: FileMoveOptions): Promise<File
       success: false,
       error: error instanceof Error ? error.message : String(error),
     };
+  } finally {
+    // Clean up project resources
+    if (project) {
+      cleanupProject(project);
+    }
   }
 };
 

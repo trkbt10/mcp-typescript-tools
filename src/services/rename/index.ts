@@ -4,10 +4,12 @@ import type { RenameOptions, RenameResult } from '../../types';
 
 export const renameSymbol = async (options: RenameOptions): Promise<RenameResult> => {
   const { filePath, oldName, newName, type } = options;
+  let project: Project | undefined;
 
   try {
-    const project = new Project({
+    project = new Project({
       tsConfigFilePath: path.join(process.cwd(), 'tsconfig.json'),
+      useInMemoryFileSystem: false,
     });
 
     const sourceFile = project.getSourceFile(filePath);
@@ -57,6 +59,16 @@ export const renameSymbol = async (options: RenameOptions): Promise<RenameResult
       success: false,
       error: error instanceof Error ? error.message : String(error),
     };
+  } finally {
+    // Clean up project resources
+    if (project) {
+      try {
+        project.getModuleResolutionHost?.()?.clearCache?.();
+        (project as any)._context?.compilerFactory?.removeCompilerApi?.();
+      } catch {
+        // Ignore cleanup errors
+      }
+    }
   }
 };
 

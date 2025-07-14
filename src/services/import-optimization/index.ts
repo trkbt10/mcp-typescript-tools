@@ -17,9 +17,10 @@ export const optimizeImports = async (
     consolidateImports = true,
     separateTypeImports = true,
   } = options;
+  let project: Project | undefined;
 
   try {
-    const project = new Project({
+    project = new Project({
       useInMemoryFileSystem: false,
       compilerOptions: {
         allowJs: true,
@@ -73,6 +74,16 @@ export const optimizeImports = async (
       changes: [],
       error: error instanceof Error ? error.message : String(error),
     };
+  } finally {
+    // Clean up project resources
+    if (project) {
+      try {
+        project.getModuleResolutionHost?.()?.clearCache?.();
+        (project as any)._context?.compilerFactory?.removeCompilerApi?.();
+      } catch {
+        // Ignore cleanup errors
+      }
+    }
   }
 };
 

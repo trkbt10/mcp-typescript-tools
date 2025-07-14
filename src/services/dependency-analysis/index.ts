@@ -6,10 +6,12 @@ export const analyzeDependencies = async (
   options: DependencyAnalysisOptions
 ): Promise<DependencyAnalysisResult> => {
   const { filePath, direction, includeTypes = true } = options;
+  let project: Project | undefined;
 
   try {
-    const project = new Project({
+    project = new Project({
       tsConfigFilePath: path.join(process.cwd(), 'tsconfig.json'),
+      useInMemoryFileSystem: false,
     });
 
     const targetFile = project.getSourceFile(filePath);
@@ -43,6 +45,16 @@ export const analyzeDependencies = async (
       dependencies: [],
       error: error instanceof Error ? error.message : String(error),
     };
+  } finally {
+    // Clean up project resources
+    if (project) {
+      try {
+        project.getModuleResolutionHost?.()?.clearCache?.();
+        (project as any)._context?.compilerFactory?.removeCompilerApi?.();
+      } catch {
+        // Ignore cleanup errors
+      }
+    }
   }
 };
 

@@ -49,6 +49,24 @@ export type DependencyAnalysisResult = {
   error?: string;
 };
 
+export type FileRenameOptions = {
+  sourcePath: string;
+  destinationPath: string;
+  updateImports?: boolean;
+};
+
+export type FileRenameResult = {
+  success: boolean;
+  error?: string;
+  updatedFiles?: string[];
+  affectedImports?: Array<{
+    file: string;
+    oldImport: string;
+    newImport: string;
+  }>;
+  isDirectory?: boolean;
+};
+
 export type PackageValidationOptions = {
   packageJsonPath: string;
   checkTypes?: boolean;
@@ -116,5 +134,65 @@ export type ImportOptimizationResult = {
   optimized: boolean;
   changes: ImportOptimizationChange[];
   optimizedCode?: string;
+  error?: string;
+};
+
+export type ConditionalOptimizationOptions = {
+  filePath: string;
+  convertToSwitch?: boolean;
+  flattenNestedConditions?: boolean;
+  optimizeBoolean?: boolean;
+};
+
+export type ConditionalOptimization = {
+  type: 'if_to_switch' | 'flatten_nested' | 'boolean_optimization';
+  originalCode: string;
+  optimizedCode: string;
+  reason: string;
+  lineNumber: number;
+};
+
+export type ConditionalOptimizationResult = {
+  filePath: string;
+  optimized: boolean;
+  optimizations: ConditionalOptimization[];
+  optimizedCode?: string;
+  error?: string;
+};
+
+export type DependencyVisualizationOptions = {
+  rootPath: string;
+  format?: 'mermaid' | 'json' | 'dot';
+  includeNodeModules?: boolean;
+  maxDepth?: number;
+  detectCircular?: boolean;
+};
+
+export type DependencyNode = {
+  id: string;
+  filePath: string;
+  type: 'file' | 'directory' | 'external';
+  imports: string[];
+  exports: string[];
+  size?: number;
+};
+
+export type CircularDependency = {
+  cycle: string[];
+  severity: 'warning' | 'error';
+  suggestion?: string;
+};
+
+export type DependencyVisualizationResult = {
+  format: string;
+  content: string;
+  nodes: DependencyNode[];
+  circularDependencies?: CircularDependency[];
+  statistics: {
+    totalFiles: number;
+    totalImports: number;
+    maxDepth: number;
+    circularCount: number;
+  };
   error?: string;
 };
