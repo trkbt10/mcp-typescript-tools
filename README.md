@@ -27,7 +27,22 @@ Rename variables, functions, types, interfaces, or classes with automatic refere
 - `newName`: New name for the symbol
 - `type`: Type of symbol ('variable' | 'function' | 'type' | 'interface' | 'class')
 
-### 3. Dependency Analysis (`analyze_typescript_dependencies`)
+### 3. File/Folder Rename (`rename_file_or_folder`)
+Rename a file or folder and automatically update all import/export paths that reference it throughout the codebase.
+
+**Parameters:**
+- `sourcePath`: Path to the file or folder to rename
+- `destinationPath`: New path for the file or folder
+- `updateImports`: Whether to update import/export paths (default: true)
+
+**Features:**
+- **Cascade Import Updates**: Automatically updates all imports and exports that reference the renamed file/folder
+- **Directory Support**: Can rename entire directories with all contained files
+- **Path Style Preservation**: Maintains import style (with/without extensions, with/without /index)
+- **Dynamic Import Support**: Updates dynamic `import()` statements in addition to static imports
+- **Project-wide Scope**: Scans and updates all TypeScript files in the project
+
+### 4. Dependency Analysis (`analyze_typescript_dependencies`)
 Analyze file dependencies in both directions to understand code relationships.
 
 **Parameters:**
@@ -37,7 +52,7 @@ Analyze file dependencies in both directions to understand code relationships.
   - `downstream`: Files that the target file imports
 - `includeTypes`: Whether to include type-only imports (default: true)
 
-### 4. Package.json Validation (`validate_package_json`)
+### 5. Package.json Validation (`validate_package_json`)
 Validate package.json configuration for type resolution, file existence, and proper exports setup.
 
 **Parameters:**
@@ -52,7 +67,7 @@ Validate package.json configuration for type resolution, file existence, and pro
 - **Exports Validation**: Ensures all export paths resolve to existing files
 - **TypesVersions**: Validates typesVersions mappings for different TypeScript versions
 
-### 5. Import Optimization (`optimize_imports`)
+### 6. Import Optimization (`optimize_imports`)
 Optimize TypeScript import statements by removing unused imports, consolidating duplicates, separating types, and optimizing paths.
 
 **Parameters:**
@@ -67,6 +82,36 @@ Optimize TypeScript import statements by removing unused imports, consolidating 
 - **Index Path Optimization**: Converts `./utils/index` to `./utils` automatically
 - **Import Consolidation**: Merges multiple import statements from the same module
 - **Type Import Separation**: Separates type imports using `import type { Type }` syntax for better tree-shaking
+
+### 7. Conditional Optimization (`optimize_conditionals`)
+Optimize conditional statements by converting if-else chains to switch statements, flattening nested conditions, and simplifying boolean expressions.
+
+**Parameters:**
+- `filePath`: Path to the TypeScript file to optimize
+- `convertToSwitch`: Whether to convert if-else chains to switch statements (default: true)
+- `flattenNestedConditions`: Whether to flatten nested if statements (default: true)
+- `optimizeBoolean`: Whether to optimize boolean expressions (default: true)
+
+**Optimizations include:**
+- **If-Else to Switch**: Converts if-else chains with 3+ equality comparisons to switch statements
+- **Nested Condition Flattening**: Combines nested if statements using logical operators
+- **Boolean Expression Simplification**: Removes redundant boolean comparisons and double negations
+
+### 8. Dependency Visualization (`visualize_dependencies`)
+Generate dependency graph visualization with circular dependency detection and module boundary analysis.
+
+**Parameters:**
+- `rootPath`: Root path of the project to analyze
+- `format`: Output format ('mermaid' | 'json' | 'dot', default: 'mermaid')
+- `includeNodeModules`: Whether to include node_modules in analysis (default: false)
+- `maxDepth`: Maximum directory depth to analyze (default: 10)
+- `detectCircular`: Whether to detect circular dependencies (default: true)
+
+**Features include:**
+- **Dependency Graph Generation**: Creates visual dependency graphs in Mermaid, DOT, or JSON format
+- **Circular Dependency Detection**: Identifies and reports circular dependencies with severity levels
+- **Module Boundary Analysis**: Analyzes import/export relationships and module structure
+- **Statistics**: Provides metrics on file count, import count, dependency depth, and circular dependencies
 
 ## Installation
 
