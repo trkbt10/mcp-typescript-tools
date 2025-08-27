@@ -19,6 +19,7 @@ import { optimizeConditionals } from './src/services/conditional-optimization/in
 import { visualizeDependencies } from './src/services/dependency-visualization/index';
 import { checkDeletable } from './src/services/check-deletable/index';
 import { repairImportPaths } from './src/services/import-path-repair/index';
+import { organizeComments } from './src/services/comment-organization/index';
 import { generateMcpConfigSnippet, generateMcpServerConfig } from './src/utils/generate-config';
 
 const server = new Server(
@@ -323,6 +324,40 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           required: ['filePath'],
         },
       },
+      {
+        name: 'organize_comments',
+        description: 'Organize and deduplicate comments in TypeScript files by moving file-level comments to the top and removing duplicates',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            filePath: {
+              type: 'string',
+              description: 'Path to the TypeScript file to organize comments in',
+            },
+            deduplicateComments: {
+              type: 'boolean',
+              description: 'Whether to remove duplicate comments (default: true)',
+              default: true,
+            },
+            moveToTop: {
+              type: 'boolean',
+              description: 'Whether to move file-level comments to the top (default: true)',
+              default: true,
+            },
+            preserveInlineComments: {
+              type: 'boolean',
+              description: 'Whether to preserve inline comments (default: true)',
+              default: true,
+            },
+            removeEmptyComments: {
+              type: 'boolean',
+              description: 'Whether to remove empty comments (default: true)',
+              default: true,
+            },
+          },
+          required: ['filePath'],
+        },
+      },
     ],
   };
 });
@@ -442,6 +477,18 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
       case 'repair_import_paths': {
         const result = await repairImportPaths(args as any);
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify(result, null, 2),
+            },
+          ],
+        };
+      }
+
+      case 'organize_comments': {
+        const result = await organizeComments(args as any);
         return {
           content: [
             {
