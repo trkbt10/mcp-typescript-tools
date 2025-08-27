@@ -72,7 +72,10 @@ export const analyzeFileDeletability = async (
     // Clean up project resources
     if (project) {
       try {
-        project.getModuleResolutionHost?.()?.clearCache?.();
+        const host = project.getModuleResolutionHost?.();
+        if (host && 'clearCache' in host && typeof host.clearCache === 'function') {
+          host.clearCache();
+        }
         (project as any)._context?.compilerFactory?.removeCompilerApi?.();
       } catch {
         // Ignore cleanup errors
@@ -311,7 +314,7 @@ const findDynamicImportReferences = (
           const args = callExpr.getArguments();
           if (args.length > 0) {
             const firstArg = args[0];
-            if (firstArg.getKind() === SyntaxKind.StringLiteral) {
+            if (firstArg && firstArg.getKind() === SyntaxKind.StringLiteral) {
               const moduleSpecifier = (firstArg as any).getLiteralValue();
               if (moduleSpecifier.startsWith('.')) {
                 const resolvedPath = resolveModulePath(sourceFile, moduleSpecifier);

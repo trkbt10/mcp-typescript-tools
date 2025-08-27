@@ -280,7 +280,7 @@ export const mock${ref.type.charAt(0).toUpperCase() + ref.type.slice(1)}${ref.li
 };`).join('\n')}
 
 export const ${fileName}Mock = {
-  references: [${fileReferences.map((_, index) => `mock${fileReferences[index].type.charAt(0).toUpperCase() + fileReferences[index].type.slice(1)}${fileReferences[index].line}`).join(', ')}],
+  references: [${fileReferences.map((ref, index) => `mock${ref.type.charAt(0).toUpperCase() + ref.type.slice(1)}${ref.line}`).join(', ')}],
   totalReferences: ${fileReferences.length},
 };`;
 };

@@ -118,7 +118,9 @@ const updateImportPaths = async (
   const sourceFiles = project.getSourceFiles();
   
   // Also scan for TypeScript files in the project directory if needed
-  const projectDir = path.dirname(project.getCompilerOptions().configFilePath || process.cwd());
+  const compilerOptions = project.getCompilerOptions();
+  const configFilePath = compilerOptions.configFilePath;
+  const projectDir = path.dirname(typeof configFilePath === 'string' ? configFilePath : process.cwd());
   
   for (const file of sourceFiles) {
     let hasChanges = false;

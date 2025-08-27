@@ -78,7 +78,10 @@ export const optimizeImports = async (
     // Clean up project resources
     if (project) {
       try {
-        project.getModuleResolutionHost?.()?.clearCache?.();
+        const host = project.getModuleResolutionHost?.();
+        if (host && 'clearCache' in host && typeof host.clearCache === 'function') {
+          host.clearCache();
+        }
         (project as any)._context?.compilerFactory?.removeCompilerApi?.();
       } catch {
         // Ignore cleanup errors
@@ -256,7 +259,10 @@ const consolidateImportsFromSameModule = async (
       const originalImports = imports.map(imp => imp.getText()).join('\n');
       
       for (let i = 1; i < imports.length; i++) {
-        imports[i].remove();
+        const importToRemove = imports[i];
+        if (importToRemove) {
+          importToRemove.remove();
+        }
       }
 
       // Reconstruct the consolidated import
@@ -291,7 +297,9 @@ const consolidateImportsFromSameModule = async (
           .filter(Boolean)
           .join('\n');
         
-        firstImport.replaceWithText(newImportText);
+        if (firstImport) {
+          firstImport.replaceWithText(newImportText);
+        }
 
         changes.push({
           type: 'consolidated',
@@ -387,11 +395,11 @@ const isTypeIdentifier = (sourceFile: SourceFile, identifier: string): boolean =
       
       // Check if used as a type in variable declarations, function parameters, etc.
       if (Node.isVariableDeclaration(parent) || 
-          Node.isParameter(parent) ||
+          Node.isParameterDeclaration(parent) ||
           Node.isPropertySignature(parent) ||
           Node.isMethodSignature(parent)) {
-        const typeNode = parent.getTypeNode?.();
-        if (typeNode && typeNode.getDescendantsOfKind(SyntaxKind.Identifier).some(typeId => typeId.getText() === identifier)) {
+        const typeNode = (parent as any).getTypeNode?.();
+        if (typeNode && typeNode.getDescendantsOfKind(SyntaxKind.Identifier).some((typeId: any) => typeId.getText() === identifier)) {
           return true;
         }
       }

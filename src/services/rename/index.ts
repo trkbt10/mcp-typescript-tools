@@ -63,7 +63,10 @@ export const renameSymbol = async (options: RenameOptions): Promise<RenameResult
     // Clean up project resources
     if (project) {
       try {
-        project.getModuleResolutionHost?.()?.clearCache?.();
+        const host = project.getModuleResolutionHost?.();
+        if (host && 'clearCache' in host && typeof host.clearCache === 'function') {
+          host.clearCache();
+        }
         (project as any)._context?.compilerFactory?.removeCompilerApi?.();
       } catch {
         // Ignore cleanup errors

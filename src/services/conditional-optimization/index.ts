@@ -13,7 +13,7 @@ export const optimizeConditionals = async (
   const {
     filePath,
     convertToSwitch = true,
-    flattenNestedConditions = true,
+    flattenNestedConditions: shouldFlattenNestedConditions = true,
     optimizeBoolean = true,
   } = options;
   let project: Project | undefined;
@@ -39,7 +39,7 @@ export const optimizeConditionals = async (
     }
 
     // 2. Flatten nested conditions
-    if (flattenNestedConditions) {
+    if (shouldFlattenNestedConditions) {
       await flattenNestedConditions(sourceFile, optimizations);
     }
 
@@ -213,7 +213,7 @@ const analyzeIfElseChain = (ifStatement: IfStatement): SwitchCandidate | null =>
 const extractSwitchCase = (condition: string): { variable: string; value: string } | null => {
   // Match patterns like: variable === 'value' or variable == 'value'
   const equalityMatch = condition.match(/(\w+)\s*===?\s*['"`]([^'"`]+)['"`]/);
-  if (equalityMatch) {
+  if (equalityMatch && equalityMatch[1] && equalityMatch[2]) {
     return {
       variable: equalityMatch[1],
       value: equalityMatch[2],
@@ -222,7 +222,7 @@ const extractSwitchCase = (condition: string): { variable: string; value: string
   
   // Match patterns like: variable === value (without quotes)
   const varMatch = condition.match(/(\w+)\s*===?\s*(\w+)/);
-  if (varMatch) {
+  if (varMatch && varMatch[1] && varMatch[2]) {
     return {
       variable: varMatch[1],
       value: varMatch[2],

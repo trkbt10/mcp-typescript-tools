@@ -4,7 +4,7 @@ export const cleanupProject = (project: Project): void => {
   try {
     // Clear module resolution cache
     const moduleResolutionHost = project.getModuleResolutionHost?.();
-    if (moduleResolutionHost?.clearCache) {
+    if (moduleResolutionHost && 'clearCache' in moduleResolutionHost && typeof moduleResolutionHost.clearCache === 'function') {
       moduleResolutionHost.clearCache();
     }
 

@@ -18,6 +18,7 @@ import { optimizeImports } from './src/services/import-optimization/index';
 import { optimizeConditionals } from './src/services/conditional-optimization/index';
 import { visualizeDependencies } from './src/services/dependency-visualization/index';
 import { checkDeletable } from './src/services/check-deletable/index';
+import { repairImportPaths } from './src/services/import-path-repair/index';
 import { generateMcpConfigSnippet, generateMcpServerConfig } from './src/utils/generate-config';
 
 const server = new Server(
@@ -288,6 +289,40 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           required: ['filePath'],
         },
       },
+      {
+        name: 'repair_import_paths',
+        description: 'Automatically detect and repair broken import paths in TypeScript files by finding the correct file location and updating import statements',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            filePath: {
+              type: 'string',
+              description: 'Path to the TypeScript file to repair import paths in',
+            },
+            dryRun: {
+              type: 'boolean',
+              description: 'Whether to perform a dry run without making actual changes (default: false)',
+              default: false,
+            },
+            includeTypes: {
+              type: 'boolean',
+              description: 'Whether to repair type-only imports (default: true)',
+              default: true,
+            },
+            respectTsConfig: {
+              type: 'boolean',
+              description: 'Whether to respect tsconfig.json include/exclude settings (default: true)',
+              default: true,
+            },
+            prioritizeCloserPaths: {
+              type: 'boolean',
+              description: 'Whether to prioritize files that are closer in the directory structure (default: true)',
+              default: true,
+            },
+          },
+          required: ['filePath'],
+        },
+      },
     ],
   };
 });
@@ -405,6 +440,18 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         };
       }
 
+      case 'repair_import_paths': {
+        const result = await repairImportPaths(args as any);
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify(result, null, 2),
+            },
+          ],
+        };
+      }
+
       default:
         throw new Error(`Unknown tool: ${name}`);
     }
@@ -426,7 +473,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 const args = process.argv.slice(2);
 if (args.includes('--generate-config') || args.includes('--config')) {
   const flagIndex = args.includes('--generate-config') ? args.indexOf('--generate-config') : args.indexOf('--config');
-  const serverName = (flagIndex !== -1 && args[flagIndex + 1] && !args[flagIndex + 1].startsWith('--')) 
+  const serverName = (flagIndex !== -1 && args[flagIndex + 1] && !args[flagIndex + 1]?.startsWith('--')) 
     ? args[flagIndex + 1] 
     : 'typescript-tools';
   generateMcpConfigSnippet(serverName).then(() => process.exit(0)).catch((err) => {
@@ -435,7 +482,7 @@ if (args.includes('--generate-config') || args.includes('--config')) {
   });
 } else if (args.includes('--install-config')) {
   const flagIndex = args.indexOf('--install-config');
-  const serverName = (flagIndex !== -1 && args[flagIndex + 1] && !args[flagIndex + 1].startsWith('--'))
+  const serverName = (flagIndex !== -1 && args[flagIndex + 1] && !args[flagIndex + 1]?.startsWith('--'))
     ? args[flagIndex + 1]
     : 'typescript-tools';
   generateMcpServerConfig(serverName).then(() => process.exit(0)).catch((err) => {
