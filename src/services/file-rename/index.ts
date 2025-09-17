@@ -31,14 +31,34 @@ export const renameFileOrFolder = async (options: FileRenameOptions): Promise<Fi
     // Try to find tsconfig.json
     const tsconfigPath = await findTsConfig(sourcePath);
     
-    project = new Project({
-      tsConfigFilePath: tsconfigPath,
+    const projectOptions: ConstructorParameters<typeof Project>[0] = {
       useInMemoryFileSystem: false,
-      skipAddingFilesFromTsConfig: true,
-    });
-    
-    // Add all TypeScript files in the project
-    project.addSourceFilesAtPaths('**/*.{ts,tsx}');
+    };
+
+    if (tsconfigPath) {
+      projectOptions.tsConfigFilePath = tsconfigPath;
+    }
+
+    project = new Project(projectOptions);
+
+    if (tsconfigPath) {
+      // Ensure files from tsconfig are loaded; skip node_modules per config excludes
+      if (project.getSourceFiles().length === 0) {
+        project.addSourceFilesFromTsConfig(tsconfigPath);
+      }
+    } else {
+      // Fallback glob when no tsconfig is found; exclude heavy/common build dirs
+      project.addSourceFilesAtPaths([
+        '**/*.ts',
+        '**/*.tsx',
+        '!**/node_modules/**',
+        '!**/dist/**',
+        '!**/build/**',
+        '!**/.next/**',
+        '!**/.turbo/**',
+        '!**/out/**',
+      ]);
+    }
 
     const updatedFiles = new Set<string>();
     const affectedImports: Array<{ file: string; oldImport: string; newImport: string }> = [];
