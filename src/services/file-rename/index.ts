@@ -187,6 +187,9 @@ const updateImportsForDirectory = async (
   for (const sourceFile of sourceFiles) {
     const filePath = sourceFile.getFilePath();
     let fileModified = false;
+    const newFilePath = filePath.startsWith(oldAbsPath)
+      ? filePath.replace(oldAbsPath, newAbsPath)
+      : undefined;
 
     // Update import declarations
     sourceFile.getImportDeclarations().forEach(importDecl => {
@@ -194,7 +197,13 @@ const updateImportsForDirectory = async (
       const resolvedPath = resolveImportPath(filePath, moduleSpecifier);
       
       if (resolvedPath.startsWith(oldAbsPath)) {
-        const newImportPath = calculateNewImportPath(filePath, oldAbsPath, newAbsPath, moduleSpecifier);
+        const newImportPath = calculateNewImportPath(
+          filePath,
+          oldAbsPath,
+          newAbsPath,
+          moduleSpecifier,
+          newFilePath
+        );
         affectedImports.push({
           file: filePath,
           oldImport: moduleSpecifier,
@@ -212,7 +221,13 @@ const updateImportsForDirectory = async (
         const resolvedPath = resolveImportPath(filePath, moduleSpecifier);
         
         if (resolvedPath.startsWith(oldAbsPath)) {
-          const newImportPath = calculateNewImportPath(filePath, oldAbsPath, newAbsPath, moduleSpecifier);
+          const newImportPath = calculateNewImportPath(
+            filePath,
+            oldAbsPath,
+            newAbsPath,
+            moduleSpecifier,
+            newFilePath
+          );
           affectedImports.push({
             file: filePath,
             oldImport: moduleSpecifier,
@@ -235,7 +250,13 @@ const updateImportsForDirectory = async (
           const resolvedPath = resolveImportPath(filePath, moduleSpecifier);
           
           if (resolvedPath.startsWith(oldAbsPath)) {
-            const newImportPath = calculateNewImportPath(filePath, oldAbsPath, newAbsPath, moduleSpecifier);
+            const newImportPath = calculateNewImportPath(
+              filePath,
+              oldAbsPath,
+              newAbsPath,
+              moduleSpecifier,
+              newFilePath
+            );
             affectedImports.push({
               file: filePath,
               oldImport: moduleSpecifier,
@@ -284,14 +305,14 @@ const calculateNewImportPath = (
   fromFile: string,
   oldAbsPath: string,
   newAbsPath: string,
-  originalImport: string
+  originalImport: string,
+  newFromFilePath?: string
 ): string => {
   if (!originalImport.startsWith('.')) {
     return originalImport; // node_modules import
   }
 
-  const fromDir = path.dirname(fromFile);
-  const resolvedOldPath = path.resolve(fromDir, originalImport);
+  const fromDir = path.dirname(newFromFilePath ?? fromFile);
   
   // Get the resolved path with extension
   const resolvedWithExt = resolveImportPath(fromFile, originalImport);

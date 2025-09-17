@@ -83,12 +83,13 @@ const processFileContent = (
   
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
+    if (line === undefined) continue;
     const trimmed = line.trim();
     
     if (trimmed.startsWith('/**')) {
       inMultiLineComment = true;
       currentCommentStart = i;
-      currentCommentLines = [lines[i]];
+      currentCommentLines = [line];
       
       if (trimmed.endsWith('*/')) {
         // Single line JSDoc
@@ -106,7 +107,7 @@ const processFileContent = (
     } else if (trimmed.startsWith('/*')) {
       inMultiLineComment = true;
       currentCommentStart = i;
-      currentCommentLines = [lines[i]];
+      currentCommentLines = [line];
       
       if (trimmed.endsWith('*/')) {
         // Single line multi-line comment
@@ -122,7 +123,7 @@ const processFileContent = (
         currentCommentLines = [];
       }
     } else if (inMultiLineComment) {
-      currentCommentLines.push(lines[i]);
+      currentCommentLines.push(line);
       
       if (trimmed.endsWith('*/')) {
         const commentText = currentCommentLines.join('\n');
@@ -140,11 +141,11 @@ const processFileContent = (
     } else if (trimmed.startsWith('//')) {
       // Single line comment
       commentBlocks.push({
-        text: lines[i],
+        text: line,
         startLine: i,
         endLine: i,
         type: 'single',
-        isEmpty: isEmptyComment(lines[i])
+        isEmpty: isEmptyComment(line)
       });
     }
   }
@@ -203,9 +204,11 @@ const processFileContent = (
       if (consolidatedComment) {
         // Find first non-empty line that's not a comment
         let insertIndex = 0;
-        while (insertIndex < newLines.length && 
-               (newLines[insertIndex].trim() === '' || 
-                newLines[insertIndex].trim().startsWith('//'))) {
+        while (insertIndex < newLines.length) {
+          const currentLine = newLines[insertIndex];
+          if (currentLine && currentLine.trim() !== '' && !currentLine.trim().startsWith('//')) {
+            break;
+          }
           insertIndex++;
         }
         
